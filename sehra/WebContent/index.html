@@ -1,0 +1,184 @@
+<!DOCTYPE HTML>
+<html>
+       <head>
+              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+   			  <script src="resources/sap-ui-core.js"
+                      id="sap-ui-bootstrap"
+                      data-sap-ui-libs="sap.ui.core,sap.ui.commons,sap.ui.ux3,sap.ui.table"
+                      data-sap-ui-theme="sap_goldreflection" >
+   			  </script>
+              <!-- add sap.ui.table,sap.ui.ux3 and/or other libraries to 'data-sap-ui-libs' if required -->
+
+   			  <script>
+   			var oShell = new sap.ui.ux3.Shell("myShell", {
+   				appTitle: "FSN Super App",
+   				appIcon: "http://www.sap.com/global/images/SAPLogo.gif",
+   				appIconTooltip: "SAP logo",
+   				showLogoutButton: true,
+   				showSearchTool: false,
+   				showInspectorTool: false,
+   				showFeederTool: false,
+				// add items to the top navigation
+				worksetItems:[
+					new sap.ui.ux3.NavigationItem({key:"wi_persons",text:"Persons"})
+				], 
+				toolPopups: [new sap.ui.ux3.ToolPopup("personTool", {
+					title: "New Person",
+					tooltip: "Add New Person",
+					icon: "images/contact_regular.png",
+					iconHover: "images/contact_hover.png",
+					content:[new sap.ui.commons.Label({text:"First Name:"})],
+					buttons: [new sap.ui.commons.Button("cancelPersonButton", {text:"Cancel",press:function(oEvent){
+						sap.ui.getCore().byId("personTool").close();
+					}})]
+				})],
+   			}).placeAt("content");
+			
+			// page content creation - for each workset the content is defined here 
+   		    var mContent = {}; // a map to remember page content once it is created
+   		    function getContent(key) {
+   		  		// if content is already created, return it directly
+   		        if (mContent[key]) return mContent[key]; 
+
+   		        if (key == "wi_persons") {
+   		        	
+   		      		// add table
+   		        	var oTable = new sap.ui.table.Table({
+   		        		title: "All Persons",
+   		        		visibleRowCount: 5,
+   		        		firstVisibleRow: 10,
+   		        		selectionMode: sap.ui.table.SelectionMode.Single,
+   		        		toolbar: new sap.ui.commons.Toolbar({items: [ 
+   		        			new sap.ui.commons.Button({text: "Add", press: function() {
+   		        				var oDialog = new sap.ui.commons.Dialog();
+								oDialog.setTitle("Add Person");
+								
+								var oFirstNameLabel = new sap.ui.commons.Label({text: "First name: "});
+								oDialog.addContent(oFirstNameLabel);
+								
+								var oFirstNameTextField = new sap.ui.commons.TextField();
+								oDialog.addContent(oFirstNameTextField);
+								
+								var oLastNameLabel = new sap.ui.commons.Label({text: "Last name: "});
+								oDialog.addContent(oLastNameLabel);
+								
+								var oLastNameTextField = new sap.ui.commons.TextField();
+								oDialog.addContent(oLastNameTextField);
+								
+								oDialog.addButton(new sap.ui.commons.Button({text: "OK", press: function() {
+									var personFirstName = oFirstNameTextField.getValue();
+									var personLastName = oLastNameTextField.getValue();
+									
+									$.ajax({
+   		        						type: "POST", 
+   		        						url: "rest/persons",
+   		        						async: false, 
+   		        						data: { firstName : personFirstName, lastName : personLastName },
+   		        						success: function () {
+   		        							oTableModel.loadData("rest/persons");
+   											alert(personFirstName + " " + personLastName + " added.");
+   		        							oTable.setFirstVisibleRow(oTableModel.getData().length);
+   		        						},
+   		        						failure: function(errMsg) {
+   		        				            alert(errMsg);
+   		        				        }
+   		        					});
+									
+									oDialog.close();
+								}}));
+								oDialog.addButton(new sap.ui.commons.Button({text: "Cancel", press: function() {
+									oDialog.close();
+								}}));
+								
+								oDialog.open();
+   		        			}}),
+   		        			new sap.ui.commons.Button({text: "Remove", press: function() {
+   		        				var selection = oTable.getSelectedIndex();
+   		        				if (selection == -1) {
+   		        					alert("Select a person from the table below.");
+   		        				} else {
+   		        					var personId = oTableModel.getProperty("/" + selection + "/id");
+   		        					var personFirstName = oTableModel.getProperty("/" + selection + "/firstName");
+   		        					var personLastName = oTableModel.getProperty("/" + selection + "/lastName");
+   		        					$.ajax({
+   		        						type: "DELETE", 
+   		        						url: "rest/persons/" + personId,
+   		        						async: false, 
+   		        						success: function () {
+   		        							oTableModel.loadData("rest/persons");
+   		        							alert(personFirstName + " " + personLastName + " removed.");
+   		        						},
+   		        						failure: function(errMsg) {
+   		        				            alert(errMsg);
+   		        				        }
+   		        					});
+   		        				}
+   		        			}})
+   		        		]})
+   		        	});
+   		        	// add columns to the table
+   		        	oTable.addColumn(new sap.ui.table.Column({
+   		        		label: new sap.ui.commons.Label({text: "ID"}),
+   		        		template: new sap.ui.commons.TextField().bindProperty("value", "id"),
+   		        		sortProperty: "id",
+   		        		filterProperty: "id",
+   		        		width: "100px"
+   		        	}));
+   		        	oTable.addColumn(new sap.ui.table.Column({
+   		        		label: new sap.ui.commons.Label({text: "First Name"}),
+   		        		template: new sap.ui.commons.TextField().bindProperty("value", "firstName"),
+   		        		sortProperty: "firstName",
+   		        		filterProperty: "firstName",
+   		        		width: "100px"
+   		        	}));
+   		        	oTable.addColumn(new sap.ui.table.Column({
+   		        		label: new sap.ui.commons.Label({text: "Last Name"}),
+   		        		template: new sap.ui.commons.TextField().bindProperty("value", "lastName"),
+   		        		sortProperty: "lastName",
+   		        		filterProperty: "lastName",
+   		        		width: "100px"
+   		        	}));
+   		        	
+   		       		// Create a model and bind the table rows to this model
+   		        	var oTableModel = new sap.ui.model.json.JSONModel();
+   		        	oTableModel.loadData("rest/persons");
+   		        	oTable.setModel(oTableModel);
+   		        	oTable.bindRows("/");
+   		        	
+   		        	// set the tabel as content
+   		        	mContent[key] = oTable;
+   		        }
+   		        
+   		        return mContent[key];
+   		    }
+   			
+   			// formatter function for displaying a full name in text widgets
+   			function getFullName(oValue) {
+   	   			if (!oValue) return;
+   	   			return oValue.firstName + " " + oValue.lastName;
+   	   		}
+   			
+   			// add header item with the name of the logged in user
+   			var oUserModel = new sap.ui.model.json.JSONModel();
+   			oUserModel.loadData("rest/user");
+   			oLoggedUser = new sap.ui.commons.TextView();
+   			oLoggedUser.setModel(oUserModel);
+   			oLoggedUser.bindText("/", getFullName);
+   			oShell.addHeaderItem(oLoggedUser);
+   			
+   			// when the user selects a workset, put the respective content into the shell's main area
+   			oShell.attachWorksetItemSelected(function(oEvent) {
+   	   			var key = oEvent.getParameter("key");
+   				oShell.setContent(getContent(key));
+   			});
+   			
+			// set the initial content of the shell - the Sessions page is selected initially
+			oShell.setContent(getContent("wi_persons"));
+   			  </script>
+
+       </head>
+       <body class="sapUiBody" role="application">
+              <div id="content"></div>
+       </body>
+</html>
