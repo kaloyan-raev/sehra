@@ -1,196 +1,24 @@
 <!DOCTYPE HTML>
 <html>
-       <head>
-              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-   			  <script src="resources/sap-ui-core.js"
-                      id="sap-ui-bootstrap"
-                      data-sap-ui-libs="sap.ui.core,sap.ui.commons,sap.ui.ux3,sap.ui.table"
-                      data-sap-ui-theme="sap_goldreflection" >
-   			  </script>
-              <!-- add sap.ui.table,sap.ui.ux3 and/or other libraries to 'data-sap-ui-libs' if required -->
+<script src="resources/sap-ui-core.js" id="sap-ui-bootstrap"
+	data-sap-ui-libs="sap.ui.core,sap.ui.commons,sap.ui.ux3,sap.ui.table"
+	data-sap-ui-theme="sap_goldreflection">
+</script>
 
-   			  <script>
-   			var oTable = new sap.ui.table.Table({
-        		visibleRowCount: 5,
-        		firstVisibleRow: 10,
-        		selectionMode: sap.ui.table.SelectionMode.Single,
-        	});
-        	// add columns to the table
-        	oTable.addColumn(new sap.ui.table.Column({
-        		label: new sap.ui.commons.Label({text: "ID"}),
-        		template: new sap.ui.commons.TextView().bindText("id"),
-        		sortProperty: "id",
-        		filterProperty: "id",
-        		width: "100px"
-        	}));
-        	oTable.addColumn(new sap.ui.table.Column({
-        		label: new sap.ui.commons.Label({text: "First Name"}),
-        		template: new sap.ui.commons.TextView().bindText("firstName"),
-        		sortProperty: "firstName",
-        		filterProperty: "firstName",
-        		width: "100px"
-        	}));
-        	oTable.addColumn(new sap.ui.table.Column({
-        		label: new sap.ui.commons.Label({text: "Last Name"}),
-        		template: new sap.ui.commons.TextView().bindText("lastName"),
-        		sortProperty: "lastName",
-        		filterProperty: "lastName",
-        		width: "100px"
-        	}));
-        	oTable.addColumn(new sap.ui.table.Column({
-        		label: new sap.ui.commons.Label({text: "Actions"}),
-        		template: new sap.ui.commons.Button({text: "Remove", press: removeEmployee}),
-        		flexible: false, 
-        		resizable: false, 
-        		width: "35px", 
-        	}));
-        	
-       		// Create a model and bind the table rows to this model
-        	var oTableModel = new sap.ui.model.json.JSONModel();
-        	oTableModel.loadData("rest/persons");
-        	oTable.setModel(oTableModel);
-        	oTable.bindRows("/");  
-   			
-     		var oFirstNameText = new sap.ui.commons.TextField();
-   			var oLastNameText = new sap.ui.commons.TextField();
-   			var oNewEmployeeMatrix = new sap.ui.commons.layout.MatrixLayout({
-   				id: "NewEmployeeMatrix", 
-   				layoutFixed: false,
-   				columns: 2
-   			});
-   			oNewEmployeeMatrix.createRow(
-   					new sap.ui.commons.Label({text: "First Name:", labelFor: oFirstNameText}), 
-					oFirstNameText
-   			);
-   			oNewEmployeeMatrix.createRow(
-   					new sap.ui.commons.Label({text: "Last Name:", labelFor: oLastNameText}), 
-					oLastNameText
-   			);
-   			
-			function addEmployee(oEvent) {
-				$.ajax({
-					type: "POST", 
-					url: "rest/persons",
-					async: false, 
-					data: { firstName : oFirstNameText.getValue(), lastName : oLastNameText.getValue() },
-					success: function () {
-						oTableModel.loadData("rest/persons");
-						oTable.setFirstVisibleRow(oTableModel.getData().length);
-					},
-					failure: function(errMsg) {
-			            alert(errMsg);
-			        }
-				});
+<script>
+	sap.ui.localResources("sehra");
+	var view = sap.ui.view({
+		viewName : "sehra.Shell",
+		type : sap.ui.core.mvc.ViewType.JS,
+	});
+	view.placeAt("content");
+</script>
 
-				sap.ui.getCore().byId("personTool").close();
-			}
-			
-			function removeEmployee(oEvent) {
-				var modelPath = oEvent.getSource().getBindingContext().getPath();
-				var personId = oTableModel.getProperty(modelPath + "/id");
-				var personFirstName = oTableModel.getProperty(modelPath + "/firstName");
-				var personLastName = oTableModel.getProperty(modelPath + "/lastName");
-				
-				sap.ui.commons.MessageBox.confirm(
-						"Are you sure you want to remove " + personFirstName + " " + personLastName + "?", 
-						function(bResult) {
-							if (bResult) {
-								$.ajax({
-									type: "DELETE", 
-									url: "rest/persons/" + personId,
-									async: false, 
-									success: function () {
-										oTableModel.loadData("rest/persons");
-									},
-									failure: function(errMsg) {
-							            alert(errMsg);
-							        }
-								});
-							}
-						}, 
-						"Remove Employee");
-			}
-   			
-   			var oShell = new sap.ui.ux3.Shell("myShell", {
-   				appTitle: "Simplest Ever HR App",
-   				appIcon: "http://www.sap.com/global/images/SAPLogo.gif",
-   				appIconTooltip: "SAP logo",
-   				showLogoutButton: true,
-   				showSearchTool: false,
-   				showInspectorTool: false,
-   				showFeederTool: false,
-				// add items to the top navigation
-				worksetItems:[
-					new sap.ui.ux3.NavigationItem({key:"wi_persons",text:"Employees"})
-				], 
-				toolPopups: [new sap.ui.ux3.ToolPopup("personTool", {
-					title: "New Employee",
-					tooltip: "Add New Employee",
-					icon: "images/contact_regular.png",
-					iconHover: "images/contact_hover.png",
-					content:[oNewEmployeeMatrix],
-					initialFocus: oFirstNameText, 
-					enter: addEmployee, 
-					open: function (oEvent) {
-						oFirstNameText.setValue("");
-						oLastNameText.setValue("");
-					}, 
-					buttons: [
-						new sap.ui.commons.Button("addPersonButton", {
-							text: "OK", 
-							press: addEmployee
-						}), 
-						new sap.ui.commons.Button("cancelPersonButton", {
-							text: "Cancel", 
-							press: function(oEvent) {
-								sap.ui.getCore().byId("personTool").close();
-							}
-						})
-					]
-				})],
-   			}).placeAt("content");
-			
-			// page content creation - for each workset the content is defined here 
-   		    var mContent = {}; // a map to remember page content once it is created
-   		    function getContent(key) {
-   		  		// if content is already created, return it directly
-   		        if (mContent[key]) return mContent[key]; 
-
-   		        if (key == "wi_persons") {
-   		        	// set the tabel as content
-   		        	mContent[key] = oTable;
-   		        }
-   		        
-   		        return mContent[key];
-   		    }
-   			
-   			// formatter function for displaying a full name in text widgets
-   			function getFullName(oValue) {
-   	   			if (!oValue) return;
-   	   			return oValue.firstName + " " + oValue.lastName;
-   	   		}
-   			
-   			// add header item with the name of the logged in user
-   			var oUserModel = new sap.ui.model.json.JSONModel();
-   			oUserModel.loadData("rest/user");
-   			oLoggedUser = new sap.ui.commons.TextView();
-   			oLoggedUser.setModel(oUserModel);
-   			oLoggedUser.bindText("/", getFullName);
-   			oShell.addHeaderItem(oLoggedUser);
-   			
-   			// when the user selects a workset, put the respective content into the shell's main area
-   			oShell.attachWorksetItemSelected(function(oEvent) {
-   	   			var key = oEvent.getParameter("key");
-   				oShell.setContent(getContent(key));
-   			});
-   			
-			// set the initial content of the shell - the Sessions page is selected initially
-			oShell.setContent(getContent("wi_persons"));
-   			  </script>
-
-       </head>
-       <body class="sapUiBody" role="application">
-              <div id="content"></div>
-       </body>
+</head>
+<body class="sapUiBody" role="application">
+	<div id="content"></div>
+</body>
 </html>
