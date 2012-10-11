@@ -27,7 +27,7 @@ sap.ui.jsview("sehra.NewEmployee", {
 			content : [ oNewEmployeeMatrix ],
 			initialFocus : oFirstNameText,
 			enter : oController.doAddEmployee,
-			open : oController.clearForm,
+			open : oController.doClearForm,
 			buttons : [ new sap.ui.commons.Button("addButton", {
 				text : "OK",
 				press : oController.doAddEmployee

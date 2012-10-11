@@ -16,7 +16,7 @@ sap.ui.controller("sehra.Employees", {
 		oTable.bindRows("/");
 	},
 
-	removeEmployee : function(oEvent) {
+	doRemoveEmployee : function(oEvent) {
 		var oModel = oEvent.getSource().getModel();
 		var sModelPath = oEvent.getSource().getBindingContext().getPath();
 

@@ -1,6 +1,6 @@
 sap.ui.controller("sehra.NewEmployee", {
 	
-	clearForm : function(oEvent) {
+	doClearForm : function(oEvent) {
 		sap.ui.getCore().byId("newEmployeeFirstName").setValue("");
 		sap.ui.getCore().byId("newEmployeeLastName").setValue("");
 	},

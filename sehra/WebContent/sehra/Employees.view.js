@@ -45,7 +45,7 @@ sap.ui.jsview("sehra.Employees", {
 			}),
 			template : new sap.ui.commons.Button({
 				text : "Remove",
-				press : oController.removeEmployee
+				press : oController.doRemoveEmployee
 			}),
 			flexible : false,
 			resizable : false,
